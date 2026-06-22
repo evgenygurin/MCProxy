@@ -175,7 +175,7 @@ acquire_proxy(proxy_type="residential", country="US")
 ```
 
 ```jsonc
-// 2. MCProxy returns a normalized result (fields shown; secrets are illustrative)
+// 2. MCProxy returns a normalized result (fields shown; credentials are illustrative)
 {
   "provider": "iproyal",
   "count": 1,
@@ -183,21 +183,20 @@ acquire_proxy(proxy_type="residential", country="US")
     {
       "host": "geo.iproyal.com",
       "port": 12321,
-      "username": "user",
-      "password": "pass_country-us",
+      "username": "user_country-us",
+      "password": "pass",
       "protocol": "http",
       "proxy_type": "residential",
       "country": "US",
       "rotation": "rotating"
     }
-  ],
-  "note": "1 proxy generated."
+  ]
 }
 ```
 
 Build the connection string from the proxy fields as
 `protocol://username:password@host:port` — e.g.
-`http://user:pass_country-us@geo.iproyal.com:12321` — and pass it straight to any
+`http://user_country-us:pass@geo.iproyal.com:12321` — and pass it straight to any
 HTTP client. For finer control, call `generate_proxy_list` / `get_proxies` with an
 explicit `provider` instead of `acquire_proxy`.
 
