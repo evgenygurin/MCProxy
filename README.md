@@ -272,8 +272,10 @@ Contributions are welcome — new provider adapters especially. A good PR:
    `tests/test_providers.py`.
 3. Passes the quality gate: `uv run ruff check .`, `uv run mypy src`, `uv run pytest`.
 
-Open an [issue](https://github.com/evgenygurin/mcproxy/issues) first for larger
-changes so we can align on direction.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full guide (setup, quality gate,
+and a step-by-step for adding a provider). Open an
+[issue](https://github.com/evgenygurin/mcproxy/issues) first for larger changes so
+we can align on direction.
 
 ## Roadmap
 
