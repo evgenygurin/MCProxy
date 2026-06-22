@@ -4,6 +4,8 @@
 
 Built with [FastMCP 3](https://gofastmcp.com). When an agent needs a proxy, it calls one MCProxy tool; MCProxy talks to whichever provider you've configured and returns ready-to-use proxy strings.
 
+> **Python 3.12 · FastMCP 3.4.2 · 11 implemented provider adapters · 14 more documented & planned · 11 unified tools**
+
 ---
 
 ## Why
@@ -145,6 +147,24 @@ Global options use the `MCPROXY_` prefix:
 | `MCPROXY_REQUEST_TIMEOUT` | `30` | Outbound HTTP timeout (seconds). |
 | `MCPROXY_DEFAULT_PROVIDER` | – | Preferred provider for `acquire_proxy`. |
 
+## Project layout
+
+```
+src/mcproxy/
+├── server.py          # FastMCP server + the unified tools
+├── models.py          # shared provider-agnostic models
+├── config.py          # settings + env credential loading
+├── http.py            # async httpx helpers (build_client, as_float, …)
+└── providers/
+    ├── __init__.py    # Registry + IMPLEMENTED list
+    ├── base.py        # BaseProvider contract
+    ├── catalog.py     # documented-but-planned providers
+    └── <provider>.py  # one adapter per provider
+server.py              # root entrypoint for `fastmcp run server.py:mcp`
+tests/                 # in-memory MCP client + mocked HTTP (respx)
+docs/                  # PROVIDERS.md + research/
+```
+
 ## Development
 
 ```bash
@@ -156,7 +176,10 @@ uv run mypy src        # types
 
 Adding a provider: create `src/mcproxy/providers/<name>.py` subclassing
 `BaseProvider`, override the operations it supports, and register it in
-`src/mcproxy/providers/__init__.py`. See `webshare.py` for a clean reference.
+`src/mcproxy/providers/__init__.py`. See `webshare.py` (header-token auth) and
+`proxy6.py` (key-in-URL auth) as references, and
+[`CLAUDE.md`](CLAUDE.md) / [`docs/PROVIDERS.md`](docs/PROVIDERS.md) for the
+conventions and the full provider landscape.
 
 ## Disclaimer
 
