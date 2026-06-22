@@ -4,6 +4,8 @@
 
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/)
 [![FastMCP](https://img.shields.io/badge/built%20with-FastMCP%203-purple.svg)](https://gofastmcp.com)
+[![MCP](https://img.shields.io/badge/protocol-MCP-orange.svg)](https://modelcontextprotocol.io)
+[![Status](https://img.shields.io/badge/status-beta-yellow.svg)](#project-status)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 Built with [FastMCP 3](https://gofastmcp.com). When an agent needs a proxy, it calls one MCProxy tool; MCProxy talks to whichever provider you've configured and returns ready-to-use proxy strings.
@@ -11,6 +13,27 @@ Built with [FastMCP 3](https://gofastmcp.com). When an agent needs a proxy, it c
 > **Python 3.12 · FastMCP 3.4.2 · 11 implemented provider adapters · 14 more documented & planned · 11 unified tools**
 
 ---
+
+## Table of contents
+
+- [Quickstart](#quickstart)
+- [Why](#why)
+- [How it works](#how-it-works)
+- [Supported providers](#supported-providers)
+- [Install](#install)
+- [Configure](#configure)
+- [Run](#run)
+- [Usage example](#usage-example)
+- [Tools](#tools)
+- [Settings](#settings)
+- [Project layout](#project-layout)
+- [Development](#development)
+- [Contributing](#contributing)
+- [Roadmap](#roadmap)
+- [Support](#support)
+- [Project status](#project-status)
+- [Disclaimer](#disclaimer)
+- [License](#license)
 
 ## Quickstart
 
@@ -141,6 +164,43 @@ MCPROXY_TRANSPORT=http MCPROXY_PORT=8000 uv run mcproxy
 }
 ```
 
+## Usage example
+
+Once the server is connected, the agent drives everything through tool calls.
+A typical "give me a US residential proxy" flow:
+
+```jsonc
+// 1. agent calls the convenience tool
+acquire_proxy(proxy_type="residential", country="US")
+```
+
+```jsonc
+// 2. MCProxy returns a normalized result (fields shown; secrets are illustrative)
+{
+  "provider": "iproyal",
+  "count": 1,
+  "proxies": [
+    {
+      "host": "geo.iproyal.com",
+      "port": 12321,
+      "username": "user",
+      "password": "pass_country-us",
+      "protocol": "http",
+      "proxy_type": "residential",
+      "country": "US",
+      "rotation": "rotating"
+    }
+  ],
+  "note": "1 proxy generated."
+}
+```
+
+Build the connection string from the proxy fields as
+`protocol://username:password@host:port` — e.g.
+`http://user:pass_country-us@geo.iproyal.com:12321` — and pass it straight to any
+HTTP client. For finer control, call `generate_proxy_list` / `get_proxies` with an
+explicit `provider` instead of `acquire_proxy`.
+
 ## Tools
 
 | Tool | Purpose |
@@ -156,7 +216,8 @@ MCPROXY_TRANSPORT=http MCPROXY_PORT=8000 uv run mcproxy
 | `scrape` | Fetch a URL through a managed scraping API. |
 | `acquire_proxy` | "Just give me a proxy" — picks a configured provider automatically. |
 
-Every returned proxy includes a ready-to-use `url` (e.g. `http://user:pass@host:port`).
+Every returned proxy carries `host`, `port` and credentials, from which the
+connection string `protocol://user:pass@host:port` is built directly.
 
 ## Settings
 
@@ -202,6 +263,40 @@ Adding a provider: create `src/mcproxy/providers/<name>.py` subclassing
 `proxy6.py` (key-in-URL auth) as references, and
 [`CLAUDE.md`](CLAUDE.md) / [`docs/PROVIDERS.md`](docs/PROVIDERS.md) for the
 conventions and the full provider landscape.
+
+## Contributing
+
+Contributions are welcome — new provider adapters especially. A good PR:
+
+1. Adds the adapter under `src/mcproxy/providers/` following the pattern above.
+2. Lists its env vars in [`.env.example`](.env.example) and a respx-mocked test in
+   `tests/test_providers.py`.
+3. Passes the quality gate: `uv run ruff check .`, `uv run mypy src`, `uv run pytest`.
+
+Open an [issue](https://github.com/evgenygurin/mcproxy/issues) first for larger
+changes so we can align on direction.
+
+## Roadmap
+
+- Implement adapters for the providers currently in the **Documented & planned**
+  catalog (see the table above and [`docs/PROVIDERS.md`](docs/PROVIDERS.md)).
+- Broaden geo-targeting and rotation coverage across existing adapters.
+
+The live picture is always `list_providers`: implemented adapters report
+`configured` status, and planned ones appear with their required env vars.
+
+## Support
+
+- **Questions / bugs:** open a [GitHub issue](https://github.com/evgenygurin/mcproxy/issues).
+- **Configuration help:** run `list_providers` — it shows each provider's
+  `configured` status and the exact env vars it needs.
+- **Provider landscape & API notes:** see [`docs/PROVIDERS.md`](docs/PROVIDERS.md).
+
+## Project status
+
+**Beta.** The core server and the 11 implemented adapters are usable today; APIs
+and the provider set may still change before a 1.0 release. Pin a version if you
+depend on it in production.
 
 ## Disclaimer
 
