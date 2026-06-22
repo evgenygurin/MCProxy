@@ -2,11 +2,33 @@
 
 **An [MCP](https://modelcontextprotocol.io) server that gives AI agents on-demand access to proxies from the world's leading and Russian/CIS proxy providers — through a single, unified interface.**
 
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/)
+[![FastMCP](https://img.shields.io/badge/built%20with-FastMCP%203-purple.svg)](https://gofastmcp.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 Built with [FastMCP 3](https://gofastmcp.com). When an agent needs a proxy, it calls one MCProxy tool; MCProxy talks to whichever provider you've configured and returns ready-to-use proxy strings.
 
 > **Python 3.12 · FastMCP 3.4.2 · 11 implemented provider adapters · 14 more documented & planned · 11 unified tools**
 
 ---
+
+## Quickstart
+
+```bash
+git clone https://github.com/evgenygurin/mcproxy.git
+cd mcproxy
+uv venv --python 3.12
+uv pip install -e .
+
+# point at a provider you have an account with
+export WEBSHARE_API_KEY=your-key
+
+# run the server (stdio — for Claude Desktop, Cursor, etc.)
+uv run mcproxy
+```
+
+Then connect an MCP client (see [Use with an MCP client](#use-with-an-mcp-client))
+and ask the agent to call `list_providers` to confirm what's configured.
 
 ## Why
 
