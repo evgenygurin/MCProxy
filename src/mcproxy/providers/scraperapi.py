@@ -8,7 +8,7 @@ Auth: API key as query parameter.
 
 from __future__ import annotations
 
-from ..http import json_or_raise, raise_for_status
+from ..http import as_float, json_or_raise, raise_for_status
 from ..models import Operation, ProxyType, ScrapeResult, UsageInfo
 from .base import BaseProvider
 
@@ -42,13 +42,12 @@ class ScraperAPIProvider(BaseProvider):
         async with self.client(base_url=BASE_URL) as client:
             resp = await client.get("/", params=params)
             raise_for_status(resp)
-        cost = resp.headers.get("sa-credit-cost")
         return ScrapeResult(
             provider=self.name,
             url=url,
             status_code=resp.status_code,
             content=resp.text,
-            cost=float(cost) if cost else None,
+            cost=as_float(resp.headers.get("sa-credit-cost")),
         )
 
     async def get_usage(self) -> UsageInfo:

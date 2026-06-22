@@ -33,10 +33,12 @@ class ProxyMeshProvider(BaseProvider):
     operations = [
         Operation.LIST_PROXIES,
         Operation.LIST_COUNTRIES,
-        Operation.GET_USAGE,
     ]
     credential_env = ["PROXYMESH_USERNAME", "PROXYMESH_PASSWORD"]
-    notes = "Rotating datacenter gateways. Auth via Basic creds or IP whitelist."
+    notes = (
+        "Rotating datacenter gateways. Auth via Basic creds or IP whitelist. "
+        "get_usage works only if PROXYMESH_SUBACCOUNT is also set."
+    )
 
     def _auth(self) -> tuple[str, str]:
         user = get_credential("PROXYMESH_USERNAME")

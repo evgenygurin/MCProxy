@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..http import json_or_raise
+from ..http import as_float, json_or_raise
 from ..models import BalanceInfo, Operation, ProxyType
 from .base import BaseProvider
 
@@ -38,14 +38,7 @@ class AsocksProvider(BaseProvider):
         balance = payload.get("balance") if isinstance(payload, dict) else None
         return BalanceInfo(
             provider=self.name,
-            balance=_as_float(balance),
+            balance=as_float(balance),
             currency="USD",
             raw=data if isinstance(data, dict) else None,
         )
-
-
-def _as_float(value: Any) -> float | None:
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None

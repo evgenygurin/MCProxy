@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..http import json_or_raise
+from ..http import as_float, json_or_raise
 from ..models import (
     BalanceInfo,
     CountryListResult,
@@ -73,7 +73,7 @@ class ProxySellerProvider(BaseProvider):
         balance = data.get("summ") if isinstance(data, dict) else data
         return BalanceInfo(
             provider=self.name,
-            balance=_as_float(balance),
+            balance=as_float(balance),
             currency=(data.get("currency") if isinstance(data, dict) else None) or "USD",
             raw=data if isinstance(data, dict) else {"balance": data},
         )
@@ -104,8 +104,8 @@ class ProxySellerProvider(BaseProvider):
                     expires_at=item.get("date_end") or item.get("end_at"),
                 )
             )
-            if country:
-                proxies = [p for p in proxies if (p.country or "").lower() == country.lower()]
+        if country:
+            proxies = [p for p in proxies if (p.country or "").lower() == country.lower()]
         return ProxyListResult.from_endpoints(self.name, proxies[:limit])
 
     async def list_countries(self, proxy_type: ProxyType | None = None) -> CountryListResult:
@@ -123,10 +123,3 @@ class ProxySellerProvider(BaseProvider):
             if isinstance(c, dict)
         ]
         return CountryListResult(provider=self.name, count=len(countries), countries=countries)
-
-
-def _as_float(value: Any) -> float | None:
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None

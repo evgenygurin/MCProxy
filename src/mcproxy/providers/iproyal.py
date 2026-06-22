@@ -25,7 +25,7 @@ from ..models import (
     Rotation,
     UsageInfo,
 )
-from .base import BaseProvider, OperationNotSupported
+from .base import BaseProvider, OperationNotSupported, ProviderError
 
 BASE_URL = "https://resi-api.iproyal.com/v1"
 DEFAULT_HOST = "geo.iproyal.com"
@@ -91,6 +91,8 @@ class IPRoyalProvider(BaseProvider):
             lines = json_or_raise(
                 await client.post("/access/generate-proxy-list", json=body)
             )
+        if not isinstance(lines, list):
+            raise ProviderError(f"Unexpected IPRoyal response: {lines}")
 
         proxies: list[ProxyEndpoint] = []
         out_protocol = ProxyProtocol.SOCKS5 if protocol is ProxyProtocol.SOCKS5 else ProxyProtocol.HTTP
@@ -118,9 +120,12 @@ class IPRoyalProvider(BaseProvider):
             )
         return ProxyListResult.from_endpoints(self.name, proxies)
 
-    async def check_balance(self) -> BalanceInfo:
+    async def _account(self) -> dict:
         async with self.client(base_url=BASE_URL, headers=self._headers()) as client:
-            data = json_or_raise(await client.get("/residential/me"))
+            return json_or_raise(await client.get("/residential/me"))
+
+    async def check_balance(self) -> BalanceInfo:
+        data = await self._account()
         return BalanceInfo(
             provider=self.name,
             traffic_remaining_gb=data.get("available_traffic"),
@@ -128,8 +133,7 @@ class IPRoyalProvider(BaseProvider):
         )
 
     async def get_usage(self) -> UsageInfo:
-        async with self.client(base_url=BASE_URL, headers=self._headers()) as client:
-            data = json_or_raise(await client.get("/residential/me"))
+        data = await self._account()
         return UsageInfo(
             provider=self.name,
             traffic_total_gb=data.get("available_traffic"),

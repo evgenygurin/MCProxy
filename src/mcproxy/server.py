@@ -256,14 +256,16 @@ def build_server() -> FastMCP:
             provider = registry.get(cap.name)
             try:
                 if Operation.GENERATE_PROXY_LIST in cap.operations:
-                    return await provider.generate_proxy_list(
+                    result = await provider.generate_proxy_list(
                         proxy_type=proxy_type, geo=GeoTarget(country=country), count=1
                     )
+                    if result.proxies:
+                        return result
                 if Operation.LIST_PROXIES in cap.operations:
                     result = await provider.list_proxies(proxy_type=proxy_type, country=country, limit=1)
                     if result.proxies:
                         return result
-            except (ProviderError, httpx.HTTPError) as exc:  # try the next provider
+            except Exception as exc:  # try the next provider on any failure
                 last_error = exc
                 if ctx:
                     await ctx.warning(f"{cap.name} failed: {exc}")

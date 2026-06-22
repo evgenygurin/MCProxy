@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..http import json_or_raise
+from ..http import as_float, json_or_raise
 from ..models import (
     BalanceInfo,
     CountryListResult,
@@ -82,7 +82,7 @@ class ProxyStoreProvider(BaseProvider):
         data = await self._call("getbalance")
         return BalanceInfo(
             provider=self.name,
-            balance=_as_float(data.get("balance")),
+            balance=as_float(data.get("balance")),
             currency=data.get("currency", "USD"),
             raw=data,
         )
@@ -131,10 +131,3 @@ class ProxyStoreProvider(BaseProvider):
             "prolong", {"period": period_days, "ids": ",".join(str(i) for i in proxy_ids)}
         )
         return {"provider": self.name, "extended": proxy_ids, "raw": data}
-
-
-def _as_float(value: Any) -> float | None:
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None

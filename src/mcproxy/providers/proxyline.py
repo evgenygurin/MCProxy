@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..http import json_or_raise, raise_for_status
+from ..http import as_float, json_or_raise, raise_for_status
 from ..models import (
     BalanceInfo,
     CountryListResult,
@@ -98,7 +98,7 @@ class ProxyLineProvider(BaseProvider):
             data = json_or_raise(await client.get("/balance/"))
         return BalanceInfo(
             provider=self.name,
-            balance=_as_float(data.get("balance")),
+            balance=as_float(data.get("balance")),
             currency=data.get("currency"),
             raw=data,
         )
@@ -141,10 +141,3 @@ class ProxyLineProvider(BaseProvider):
         async with self.client(base_url=BASE_URL, headers=self._headers()) as client:
             data = json_or_raise(await client.post("/renew/", json=body))
         return {"provider": self.name, "extended": proxy_ids, "raw": data}
-
-
-def _as_float(value: Any) -> float | None:
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None

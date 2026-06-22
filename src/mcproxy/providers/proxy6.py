@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..http import json_or_raise
+from ..http import as_float, json_or_raise
 from ..models import (
     BalanceInfo,
     CountryListResult,
@@ -73,10 +73,12 @@ class Proxy6Provider(BaseProvider):
         items = listing.values() if isinstance(listing, dict) else (listing or [])
         proxies: list[ProxyEndpoint] = []
         for item in items:
+            if not isinstance(item, dict):
+                continue
             proxies.append(
                 ProxyEndpoint(
                     host=item.get("host") or item.get("ip"),
-                    port=int(item["port"]),
+                    port=int(item["port"]) if str(item.get("port", "")).isdigit() else 0,
                     username=item.get("user"),
                     password=item.get("pass"),
                     protocol=self._protocol(item.get("type")),
@@ -92,7 +94,7 @@ class Proxy6Provider(BaseProvider):
         data = await self._call("getcountry", {"version": VERSION_IPV6})
         return BalanceInfo(
             provider=self.name,
-            balance=float(data["balance"]) if "balance" in data else None,
+            balance=as_float(data.get("balance")),
             currency=data.get("currency"),
             raw={k: data[k] for k in ("balance", "currency", "user_id") if k in data},
         )

@@ -46,3 +46,11 @@ def raise_for_status(response: httpx.Response) -> None:
 def json_or_raise(response: httpx.Response) -> Any:
     raise_for_status(response)
     return response.json()
+
+
+def as_float(value: Any) -> float | None:
+    """Best-effort float coercion; returns None for missing/non-numeric values."""
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None

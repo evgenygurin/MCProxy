@@ -119,6 +119,46 @@ async def test_proxymesh_list_proxies(registry, monkeypatch):
     assert result.proxies[0].port == 31280
 
 
+@respx.mock
+async def test_webshare_check_balance_empty_results(registry, monkeypatch):
+    # Regression: empty results must not raise IndexError.
+    monkeypatch.setenv("WEBSHARE_API_KEY", "wskey")
+    respx.route(method="GET", url__regex=r"proxy\.webshare\.io/api/v2/subscription").mock(
+        return_value=httpx.Response(200, json={"count": 0, "results": []})
+    )
+    bal = await registry.get("webshare").check_balance()
+    assert bal.provider == "webshare"
+    assert bal.raw == {"count": 0, "results": []}
+
+
+@respx.mock
+async def test_proxy6_list_tolerates_missing_port(registry, monkeypatch):
+    # Regression: a proxy item without a numeric port must not crash.
+    monkeypatch.setenv("PROXY6_API_KEY", "testkey")
+    respx.route(method="GET", url__regex=r"px6\.link/api/testkey/getproxy").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "status": "yes",
+                "balance": "1",
+                "list": {"1": {"ip": "1.2.3.4", "host": "1.2.3.4", "user": "u", "pass": "p"}},
+            },
+        )
+    )
+    result = await registry.get("proxy6").list_proxies()
+    assert result.count == 1
+    assert result.proxies[0].port == 0
+
+
+def test_as_float_helper():
+    from mcproxy.http import as_float
+
+    assert as_float("12.5") == 12.5
+    assert as_float(3) == 3.0
+    assert as_float(None) is None
+    assert as_float("not-a-number") is None
+
+
 async def test_operation_not_supported(registry, monkeypatch):
     from mcproxy.providers import OperationNotSupported
 

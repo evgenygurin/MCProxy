@@ -71,13 +71,11 @@ class WebshareProvider(BaseProvider):
         )
 
     async def check_balance(self) -> BalanceInfo:
+        # Webshare is subscription-based (no monetary balance); surface the
+        # subscription/plan payload so the agent can see the active plan.
         async with self.client(base_url=BASE_URL, headers=self._headers()) as client:
             data = json_or_raise(await client.get("/subscription/"))
-        # Webshare is subscription-based; surface remaining bandwidth where present.
-        sub = data.get("results", [data])[0] if isinstance(data, dict) else {}
-        remaining = sub.get("bandwidth_limit")
-        gb = round(remaining / 1_000_000_000, 2) if isinstance(remaining, (int, float)) else None
-        return BalanceInfo(provider=self.name, traffic_remaining_gb=gb, raw=data)
+        return BalanceInfo(provider=self.name, raw=data)
 
     async def get_usage(self) -> UsageInfo:
         async with self.client(base_url=BASE_URL, headers=self._headers()) as client:

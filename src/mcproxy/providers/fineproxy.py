@@ -7,10 +7,8 @@ Auth: HTTP Basic (email:password).
 
 from __future__ import annotations
 
-from typing import Any
-
 from ..config import get_credential
-from ..http import json_or_raise
+from ..http import as_float, json_or_raise
 from ..models import BalanceInfo, Operation, ProxyType
 from .base import BaseProvider, ProviderNotConfigured
 
@@ -43,14 +41,7 @@ class FineProxyProvider(BaseProvider):
         balance = data.get("credit") if isinstance(data, dict) else data
         return BalanceInfo(
             provider=self.name,
-            balance=_as_float(balance),
+            balance=as_float(balance),
             currency="USD",
             raw=data if isinstance(data, dict) else {"credit": data},
         )
-
-
-def _as_float(value: Any) -> float | None:
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
